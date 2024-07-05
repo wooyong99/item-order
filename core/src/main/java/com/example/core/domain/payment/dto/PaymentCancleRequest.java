@@ -1,4 +1,4 @@
-package com.example.payment.domain.payment.dto;
+package com.example.core.domain.payment.dto;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import lombok.AllArgsConstructor;

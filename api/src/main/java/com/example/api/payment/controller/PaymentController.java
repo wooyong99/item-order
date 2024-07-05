@@ -1,9 +1,9 @@
-package com.example.payment.domain.payment.controller;
+package com.example.api.payment.controller;
 
+import com.example.api.domain.payment.service.PaymentService;
+import com.example.core.domain.payment.dto.PaymentValidateRequest;
 import com.example.core.domain.user.domain.UserRole;
 import com.example.core.security.aop.AuthorizationRequired;
-import com.example.payment.domain.payment.dto.PaymentValidateRequest;
-import com.example.payment.domain.payment.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
