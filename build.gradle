@@ -64,6 +64,9 @@ subprojects {
         // p66spy Library
         implementation 'p6spy:p6spy:3.9.1'
         implementation 'com.github.gavlyukovskiy:datasource-decorator-spring-boot-autoconfigure:1.9.0'
+
+        // Iamport
+        implementation 'com.github.iamport:iamport-rest-client-java:0.2.21'
     }
 }
 
@@ -76,27 +79,6 @@ project(':core') {
 
         // Security
         implementation 'org.springframework.boot:spring-boot-starter-security'
-    }
-
-    jar {
-        enabled = true
-    }
-
-    bootJar {
-        enabled = false
-    }
-
-    tasks.named('test') {
-        useJUnitPlatform()
-    }
-}
-
-project(':payment') {
-    dependencies {
-        implementation(project(":core"))
-
-        // Iamport
-        implementation 'com.github.iamport:iamport-rest-client-java:0.2.21'
     }
 
     jar {
@@ -138,7 +120,6 @@ project(':api') {
     dependencies {
         implementation(project(":core"))
         implementation(project(":order"))
-        implementation(project(":payment"))
 
         // Security
         implementation 'org.springframework.boot:spring-boot-starter-security'
