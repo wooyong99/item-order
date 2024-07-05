@@ -6,6 +6,7 @@ import com.example.core.domain.item.domain.Item;
 import com.example.core.domain.order.domain.Order;
 import com.example.core.domain.order.repository.OrderRepository;
 import com.example.core.domain.user.domain.User;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,9 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 @DisplayName("OrderRepositoryTest 테스트")
 @Slf4j
 public class OrderRepositoryTest {
+
+    @Autowired
+    EntityManager em;
 
     @Autowired
     OrderRepository orderRepository;
@@ -47,6 +51,23 @@ public class OrderRepositoryTest {
 
         // then
         Assertions.assertThat(orderRepository.findById(order.getId()).get()).isEqualTo(order);
+    }
+
+    @Test
+    @DisplayName("Order 데이터가 삭제되는지 확인합니다.")
+    public void shouldDeleteOrderSuccessfully() {
+        // given
+        Order order = Util.createOrder(user, 1000L, Util.randomUID(), item);
+        orderRepository.save(order);
+        em.flush();
+
+        // when
+        orderRepository.deleteById(order.getId());
+        em.flush();
+        em.clear();
+
+        // then
+        Assertions.assertThat(em.contains(order)).isFalse();
     }
 
     @Test
