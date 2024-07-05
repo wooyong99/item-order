@@ -1,9 +1,9 @@
 package com.example.api.domain.order.service;
 
-import com.example.api.domain.order.dto.OrderCreateRequest;
 import com.example.core.domain.item.domain.Item;
 import com.example.core.domain.item.repository.ItemRepository;
 import com.example.core.domain.order.domain.Order;
+import com.example.core.domain.order.dto.OrderCreateRequest;
 import com.example.core.domain.order.repository.OrderRepository;
 import com.example.core.domain.user.domain.User;
 import com.example.core.domain.user.repository.UserRepository;
@@ -28,15 +28,16 @@ public class OrderService {
         String merchantUid = createMerchantUid();
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+        Item item = itemRepository.findById(itemId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
 
         Order order = Order.builder()
-                .user(user)
-                .item(item)
-                .price(request.getPrice())
-                .merchantUid(merchantUid)
-                .build();
+            .user(user)
+            .item(item)
+            .price(request.getPrice())
+            .merchantUid(merchantUid)
+            .build();
 
         validateStock(item.getStock());
 

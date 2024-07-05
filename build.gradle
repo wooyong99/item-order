@@ -11,7 +11,6 @@ java {
 }
 
 
-
 subprojects {
     apply plugin: 'java'
     apply plugin: 'org.springframework.boot'
@@ -68,7 +67,7 @@ subprojects {
     }
 }
 
-project(':core'){
+project(':core') {
     dependencies {
         // Jwt
         implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
@@ -92,23 +91,41 @@ project(':core'){
     }
 }
 
-project(':order'){
+project(':payment') {
+    dependencies {
+        implementation(project(":core"))
+
+        // Iamport
+        implementation 'com.github.iamport:iamport-rest-client-java:0.2.21'
+    }
+
+    jar {
+        enabled = true
+    }
+
+    bootJar {
+        enabled = false
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+}
+
+project(':order') {
     dependencies {
         implementation(project(":core"))
 
         // Security
         implementation 'org.springframework.boot:spring-boot-starter-security'
-
-        // Iamport
-        implementation 'com.github.iamport:iamport-rest-client-java:0.2.21'
     }
 
     jar {
-        enabled = false
+        enabled = true
     }
 
     bootJar {
-        enabled = true
+        enabled = false
     }
 
     tasks.named('test') {
@@ -116,14 +133,16 @@ project(':order'){
     }
 }
 
-project(':payment'){
+
+project(':api') {
     dependencies {
         implementation(project(":core"))
+        implementation(project(":order"))
+        implementation(project(":payment"))
 
-        // Iamport
-        implementation 'com.github.iamport:iamport-rest-client-java:0.2.21'
+        // Security
+        implementation 'org.springframework.boot:spring-boot-starter-security'
     }
-
     jar {
         enabled = false
     }
@@ -136,7 +155,6 @@ project(':payment'){
         useJUnitPlatform()
     }
 }
-
 
 
 bootJar.enabled = false

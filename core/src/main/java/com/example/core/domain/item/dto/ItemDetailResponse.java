@@ -1,4 +1,4 @@
-package com.example.api.domain.item.dto;
+package com.example.core.domain.item.dto;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;

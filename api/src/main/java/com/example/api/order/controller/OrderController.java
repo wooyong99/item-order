@@ -1,7 +1,7 @@
-package com.example.api.domain.order.controller;
+package com.example.api.order.controller;
 
-import com.example.api.domain.order.dto.OrderCreateRequest;
 import com.example.api.domain.order.service.OrderService;
+import com.example.core.domain.order.dto.OrderCreateRequest;
 import com.example.core.domain.user.domain.UserRole;
 import com.example.core.security.aop.AuthorizationRequired;
 import io.swagger.v3.oas.annotations.Operation;

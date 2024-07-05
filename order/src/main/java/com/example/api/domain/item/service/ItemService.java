@@ -1,9 +1,9 @@
 package com.example.api.domain.item.service;
 
 
-import com.example.api.domain.item.dto.ItemCreateRequest;
-import com.example.api.domain.item.dto.ItemDetailResponse;
 import com.example.core.domain.item.domain.Item;
+import com.example.core.domain.item.dto.ItemCreateRequest;
+import com.example.core.domain.item.dto.ItemDetailResponse;
 import com.example.core.domain.item.repository.ItemRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,8 @@ public class ItemService {
     }
 
     public ItemDetailResponse findItem(Long itemId) {
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+        Item item = itemRepository.findById(itemId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
         ItemDetailResponse response = toResponseDto(item);
         return response;
     }

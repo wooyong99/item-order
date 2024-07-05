@@ -1,8 +1,7 @@
-
 package com.example.api.domain.user.service;
 
-import com.example.api.domain.user.dto.UserDetailsImpl;
 import com.example.core.domain.user.domain.User;
+import com.example.core.domain.user.dto.UserDetailsImpl;
 import com.example.core.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
