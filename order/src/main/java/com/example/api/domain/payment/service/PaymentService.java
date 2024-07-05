@@ -56,6 +56,7 @@ public class PaymentService {
         item.decreaseStock();
         itemRepository.save(item);
         order.increaseStatus();
+        order.setImpUid(request.getImpUid());
         orderRepository.save(order);
     }
 

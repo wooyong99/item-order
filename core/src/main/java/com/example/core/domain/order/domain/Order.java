@@ -11,12 +11,14 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 @Entity
 @Getter
@@ -50,6 +52,13 @@ public class Order extends BaseEntity {
         this.merchantUid = merchantUid;
     }
 
+    @PrePersist
+    private void validate() {
+        if (price < 1) {
+            throw new InvalidDataAccessApiUsageException("가격이 0원 이하일 수 없습니다.");
+        }
+    }
+
     private void setItem(Item item) {
         if (this.item != null) {
             this.item.getOrders().remove(this);
@@ -74,6 +83,9 @@ public class Order extends BaseEntity {
     public void decreaseStatus() {
         Integer decreaseStatusValue = this.status.decreaseStatus();
         this.status = OrderStatusEnum.getByValue(decreaseStatusValue);
+    }
 
+    public void setImpUid(String impUid) {
+        this.impUid = impUid;
     }
 }

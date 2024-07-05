@@ -3,6 +3,7 @@ package com.example.core.domain.item.domain;
 import com.example.core.domain.common.BaseEntity;
 import com.example.core.domain.order.domain.Order;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
@@ -24,6 +25,7 @@ public class Item extends BaseEntity {
     @OneToMany(mappedBy = "item", cascade = {CascadeType.PERSIST,
         CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.LAZY)
     List<Order> orders = new ArrayList<>();
+    @Column(nullable = false)
     private String name;
     private Long price;
     private Long stock;
