@@ -7,6 +7,7 @@ import com.example.core.db.config.QueryDslConfig;
 import com.example.core.domain.item.domain.Item;
 import com.example.core.domain.item.repository.ItemRepository;
 import com.example.core.domain.user.domain.User;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +27,9 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 public class ItemRepositoryTest {
 
     @Autowired
+    EntityManager em;
+
+    @Autowired
     ItemRepository itemRepository;
 
     User user;
@@ -37,7 +41,7 @@ public class ItemRepositoryTest {
 
     @Test
     @DisplayName("Item 데이터가 저장되는지 확인합니다.")
-    public void shouldPersistItemSucessfully() {
+    public void shouldPersistItemSuccessfully() {
         // given
         Item item = createItem("name", 1000L, 10000L);
 
@@ -46,6 +50,23 @@ public class ItemRepositoryTest {
 
         // then
         Assertions.assertThat(itemRepository.findById(item.getId()).get()).isEqualTo(item);
+    }
+
+    @Test
+    @DisplayName("Item 데이터가 삭제되는지 확인합니다.")
+    public void shouldDeleteItemSuccessfully() {
+        // given
+        Item item = createItem("name", 1000L, 10000L);
+        itemRepository.save(item);
+        em.flush();
+
+        // when
+        itemRepository.deleteById(item.getId());
+        em.flush();
+        em.clear();
+
+        // then
+        Assertions.assertThat(em.contains(item)).isFalse();
     }
 
     @Test
