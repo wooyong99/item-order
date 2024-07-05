@@ -3,3 +3,4 @@ rootProject.name = 'multi-module'
 include('core')
 include('order')
 include('payment')
+include("api")

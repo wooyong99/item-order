@@ -1,8 +1,8 @@
-package com.example.api.domain.item.controller;
+package com.example.api.item.controller;
 
-import com.example.api.domain.item.dto.ItemCreateRequest;
-import com.example.api.domain.item.dto.ItemDetailResponse;
 import com.example.api.domain.item.service.ItemService;
+import com.example.core.domain.item.dto.ItemCreateRequest;
+import com.example.core.domain.item.dto.ItemDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import java.net.URI;
 import java.util.List;

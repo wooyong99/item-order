@@ -1,4 +1,4 @@
-package com.example.api.domain.user.dto;
+package com.example.core.domain.user.dto;
 
 import com.example.core.domain.user.domain.User;
 import java.util.ArrayList;

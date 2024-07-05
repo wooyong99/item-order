@@ -1,4 +1,4 @@
-package com.example.api.domain.order.dto;
+package com.example.core.domain.order.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

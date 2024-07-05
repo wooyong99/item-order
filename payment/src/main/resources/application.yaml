@@ -1,3 +1,6 @@
+server:
+  port: 8081
+
 jwt:
   secret: sgjasg3123adadg3123123hdfh21ad53422dadasf5123adadg3123123hdfh21ad53425
   token-validity-in-seconds: 86400

@@ -1,9 +1,9 @@
 package com.example.api.domain.user.service;
 
-import com.example.api.domain.user.dto.SignupRequest;
-import com.example.api.domain.user.dto.TokenResponse;
-import com.example.api.domain.user.dto.UserDetailsImpl;
 import com.example.core.domain.user.domain.User;
+import com.example.core.domain.user.dto.SignupRequest;
+import com.example.core.domain.user.dto.TokenResponse;
+import com.example.core.domain.user.dto.UserDetailsImpl;
 import com.example.core.domain.user.repository.UserRepository;
 import com.example.core.exception.LoginFailedException;
 import com.example.core.exception.UserAlreadyExistsException;
@@ -40,7 +40,8 @@ public class AuthService {
 
         Authentication authentication;
         try {
-            authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+            authentication = authenticationManagerBuilder.getObject()
+                .authenticate(authenticationToken);
         } catch (BadCredentialsException e) {
             throw new LoginFailedException("로그인 정보가 일치하지 않습니다");
         } catch (InternalAuthenticationServiceException e) {
@@ -64,6 +65,7 @@ public class AuthService {
 
         User user = User.builder().email(request.getEmail())
             .password(encoder.encode(request.getPassword()))
+            .nickname(request.getNickname())
             .build();
         userRepository.save(user);
     }
@@ -71,6 +73,7 @@ public class AuthService {
     private void validationSignup(String email) {
         existsUserByEmail(email);
     }
+
     private void existsUserByEmail(String email) {
         if (userRepository.existsByEmail(email)) {
             throw new UserAlreadyExistsException();

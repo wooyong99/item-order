@@ -1,4 +1,4 @@
-package com.example.api.domain.item.dto;
+package com.example.core.domain.item.dto;
 
 
 import com.example.core.domain.item.domain.Item;
@@ -25,9 +25,9 @@ public class ItemCreateRequest {
 
     public Item toEntity() {
         return Item.builder()
-                .name(name)
-                .price(price)
-                .stock(stock)
-                .build();
+            .name(name)
+            .price(price)
+            .stock(stock)
+            .build();
     }
 }
