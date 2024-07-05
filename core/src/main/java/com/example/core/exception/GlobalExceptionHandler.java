@@ -1,12 +1,6 @@
-package com.example.api.exception;
+package com.example.core.exception;
 
 import com.example.core.common.response.ApiResponse;
-import com.example.core.exception.AuthorizationException;
-import com.example.core.exception.InternalServerException;
-import com.example.core.exception.LoginFailedException;
-import com.example.core.exception.NotFoundUserException;
-import com.example.core.exception.RequestThrottlingException;
-import com.example.core.exception.UserAlreadyExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,13 +32,6 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiResponse<Void>> handleJwtUnauthorizedException(RuntimeException exception) {
         log.error("message", exception);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(ApiResponse.error(exception.getMessage()));
-    }
-
-    @ExceptionHandler(RequestThrottlingException.class)
-    ResponseEntity<ApiResponse<Void>> handleRequestThrottingException(RuntimeException exception) {
-        log.error("message", exception);
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
             .body(ApiResponse.error(exception.getMessage()));
     }
 
