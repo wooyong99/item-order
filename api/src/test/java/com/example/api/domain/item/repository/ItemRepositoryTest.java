@@ -7,7 +7,9 @@ import com.example.core.db.config.QueryDslConfig;
 import com.example.core.domain.item.domain.Item;
 import com.example.core.domain.item.repository.ItemRepository;
 import com.example.core.domain.user.domain.User;
+import com.example.core.exception.StockNegativeException;
 import jakarta.persistence.EntityManager;
+import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,4 +99,38 @@ public class ItemRepositoryTest {
             InvalidDataAccessApiUsageException.class);
     }
 
+    @Test
+    @DisplayName("재고가 정상적으로 감소되는지 확인합니다.")
+    public void shouldDecreaseStockSuccessfully() {
+        // given
+        long originStock = 1000;
+        int decreaseCount = 10;
+        Item item = createItem("name", originStock, 1000L);
+        itemRepository.save(item);
+
+        // when
+        getDecreaseStock(decreaseCount, item.getId());
+
+        // then
+        Assertions.assertThat(item.getStock()).isEqualTo(originStock - decreaseCount);
+    }
+
+    @Test
+    @DisplayName("재고 감소 시 0 미만이면 예외를 던집니다.")
+    public void shouldThrowExceptionDecreaseStockNegative() {
+        // given
+        long originStock = 5;
+        Item item = createItem("name", originStock, 1000L);
+        itemRepository.save(item);
+
+        // when
+        Assertions.assertThatThrownBy(() -> getDecreaseStock(10, item.getId())).isExactlyInstanceOf(
+            StockNegativeException.class);
+    }
+
+    public void getDecreaseStock(int index, Long itemId) {
+        Item item = itemRepository.findById(itemId).get();
+        IntStream.range(0, index).forEach(i -> item.decreaseStock());
+        itemRepository.saveAndFlush(item);
+    }
 }

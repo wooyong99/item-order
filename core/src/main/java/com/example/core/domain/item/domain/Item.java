@@ -2,6 +2,7 @@ package com.example.core.domain.item.domain;
 
 import com.example.core.domain.common.BaseEntity;
 import com.example.core.domain.order.domain.Order;
+import com.example.core.exception.StockNegativeException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -48,6 +49,10 @@ public class Item extends BaseEntity {
     }
 
     public void decreaseStock() {
+        Long temp = this.stock;
+        if (temp < 1) {
+            throw new StockNegativeException();
+        }
         this.stock--;
     }
 }
