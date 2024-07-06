@@ -29,7 +29,7 @@ public class OrderService {
 
         User user = userRepository.findById(request.getUserId())
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findByIdWithPessimisticLock(itemId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
 
         Order order = Order.builder()
