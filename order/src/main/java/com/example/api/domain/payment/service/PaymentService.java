@@ -31,6 +31,9 @@ public class PaymentService {
         Order order = orderRepository.findByMerchantUid(merchantUid)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호입니다."));
 
+        Item item = itemRepository.findByIdWithPessimisticLock(order.getItem().getId())
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이템입니다."));
+
         IamportResponse<Payment> paymentIamportResponse = null;
         try {
             paymentIamportResponse = iamportClient.paymentByImpUid(
@@ -52,7 +55,6 @@ public class PaymentService {
             e.printStackTrace();
             throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
         }
-        Item item = order.getItem();
         item.decreaseStock();
         itemRepository.save(item);
         order.increaseStatus();
