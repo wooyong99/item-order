@@ -106,11 +106,11 @@ project(':order') {
     }
 
     jar {
-        enabled = true
+        enabled = false
     }
 
     bootJar {
-        enabled = false
+        enabled = true
     }
 
     tasks.named('test') {
@@ -118,15 +118,14 @@ project(':order') {
     }
 }
 
-
-project(':api') {
+project(':payment') {
     dependencies {
         implementation(project(":core"))
-        implementation(project(":order"))
 
         // Security
         implementation 'org.springframework.boot:spring-boot-starter-security'
     }
+
     jar {
         enabled = false
     }
@@ -139,6 +138,28 @@ project(':api') {
         useJUnitPlatform()
     }
 }
+//
+//project(':api') {
+//    dependencies {
+//        implementation(project(":core"))
+//        implementation(project(":order"))
+//        implementation(project(":payment"))
+//
+//        // Security
+//        implementation 'org.springframework.boot:spring-boot-starter-security'
+//    }
+//    jar {
+//        enabled = false
+//    }
+//
+//    bootJar {
+//        enabled = true
+//    }
+//
+//    tasks.named('test') {
+//        useJUnitPlatform()
+//    }
+//}
 
 
 bootJar.enabled = false

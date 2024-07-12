@@ -1,0 +1,91 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  application:
+    name:
+      hotel
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:test;MODE=MARIADB;DATABASE_TO_UPPER=FALSE;NON_KEYWORDS=USER
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        dialect: org.hibernate.dialect.MariaDBDialect
+    database-platform: org.hibernate.dialect.MariaDBDialect
+  mail:
+    host: smtp.gmail.com  # Google
+    port: 587   # ??? ?? 587 ??
+    username: wulovesk12@gmail.com  # ?? ??? ???.
+    password: fdie ebgi kktq hfgd
+    protocol: smtp
+    properties:
+      mail:
+        debug: true # ?? ?? ? ??,?? ??
+        smtp:
+          connectiontimeout: 5000 # ???? ??
+          starttls: # SSL/TLS SMTPS ?? ? ?? ?? ???
+            enable: true
+            required: true
+redis:
+  host: localhost
+  port: 6379
+  database: 0
+  password: 1234
+
+jwt:
+  secret: mfnbmUiFDjhuPqceBpS7eNcy8w5MBHJkVgvhvjMLnygvJBjNlbGHcVGjvHCgIDxaAsSNJvHVDxgVHcXSJBgCXRymUKFOLJvHVDxgVHcXSJDHHd
+  token-validity-in-seconds: 86400
+---
+server:
+  port: 8081
+spring:
+  application:
+    name:
+      hotel
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/smtp?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&createDatabaseIfNotExist=true
+    username: root
+    password: 1234
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        dialect: org.hibernate.dialect.MariaDBDialect
+  mail:
+    host: smtp.gmail.com  # Google
+    port: 587   # ??? ?? 587 ??
+    username: wulovesk12@gmail.com  # ?? ??? ???.
+    password: fdie ebgi kktq hfgd
+    protocol: smtp
+    properties:
+      mail:
+        debug: true # ?? ?? ? ??,?? ??
+        smtp:
+          connectiontimeout: 5000 # ???? ??
+          starttls: # SSL/TLS SMTPS ?? ? ?? ?? ???
+            enable: true
+            required: true
+redis:
+  host: localhost
+  port: 6379
+  database: 0
+  password: 1234
+
+jwt:
+  secret: sgjasg3123adadg3123123hdfh21ad53422dadasf5123adadg3123123hdfh21ad53425
+  token-validity-in-seconds: 86400
+
+imp:
+  code: imp95037675
+  api:
+    key: 5930912871074408
+    secretkey: e014f269ee8f1d6e5d3f51461e154f33df9ff092a0eb51ae1d6a25223e7ad182478b560ca1264543
