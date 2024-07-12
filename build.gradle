@@ -79,6 +79,9 @@ project(':core') {
 
         // Security
         implementation 'org.springframework.boot:spring-boot-starter-security'
+
+        // Redisson
+        implementation 'org.redisson:redisson-spring-boot-starter:3.17.0'
     }
 
     jar {
