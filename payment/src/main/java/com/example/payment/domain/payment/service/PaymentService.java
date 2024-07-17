@@ -8,6 +8,8 @@ public interface PaymentService {
 
     void validatePayment(String merchantUid, PaymentValidateRequest request);
 
+    void validatePayment(Long itemId, String merchantUid, String impUid, Long price);
+
     void canclePayment(String merchantUid);
 
 }

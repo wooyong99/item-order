@@ -1,7 +1,6 @@
 package com.example.payment;
 
-import com.example.core.domain.item.repository.ItemRepository;
-import com.example.core.domain.order.repository.OrderRepository;
+import com.example.core.kafka.producer.StockDecreaseProducer;
 import com.example.payment.domain.payment.service.PaymentService;
 import com.example.payment.domain.payment.service.RedissonPaymentService;
 import com.siot.IamportRestClient.IamportClient;
@@ -18,7 +17,13 @@ public class PaymentApplication {
 
     @Bean
     public PaymentService paymentService(IamportClient iamportClient,
-        OrderRepository orderRepository, ItemRepository itemRepository) {
-        return new RedissonPaymentService(iamportClient, orderRepository, itemRepository);
+        StockDecreaseProducer stockDecreaseProducer) {
+        return new RedissonPaymentService(iamportClient, stockDecreaseProducer);
     }
+
+//    @Bean
+//    public PaymentService paymentService(IamportClient iamportClient,
+//        OrderRepository orderRepository, ItemRepository itemRepository) {
+//        return new DefaultPaymentService(iamportClient, orderRepository, itemRepository);
+//    }
 }

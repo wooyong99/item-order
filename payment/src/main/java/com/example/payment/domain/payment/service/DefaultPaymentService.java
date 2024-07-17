@@ -23,6 +23,11 @@ public class DefaultPaymentService implements PaymentService {
 
     private final ItemRepository itemRepository;
 
+    @Override
+    public void validatePayment(Long itemId, String merchantUid, String impUid, Long price) {
+        
+    }
+
     // 주문 결제 확인
     @Transactional
     public void validatePayment(String merchantUid, PaymentValidateRequest request) {

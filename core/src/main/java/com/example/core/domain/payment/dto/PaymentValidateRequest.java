@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PaymentValidateRequest {
 
-    private Long itemId;
-
     private String impUid;
+
+    private Long price;
 }

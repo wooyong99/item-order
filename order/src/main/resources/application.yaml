@@ -82,7 +82,7 @@ redis:
 
 jwt:
   secret: sgjasg3123adadg3123123hdfh21ad53422dadasf5123adadg3123123hdfh21ad53425
-  token-validity-in-seconds: 86400
+  token-validity-in-seconds: 864000000000
 
 imp:
   code: imp95037675
