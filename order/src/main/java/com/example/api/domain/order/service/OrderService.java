@@ -3,14 +3,18 @@ package com.example.api.domain.order.service;
 import com.example.core.domain.item.domain.Item;
 import com.example.core.domain.item.repository.ItemRepository;
 import com.example.core.domain.order.domain.Order;
+import com.example.core.domain.order.domain.OrderStatusEnum;
 import com.example.core.domain.order.dto.OrderCreateRequest;
 import com.example.core.domain.order.repository.OrderRepository;
+import com.example.core.domain.payment.dto.PaymentValidateRequest;
 import com.example.core.domain.user.domain.User;
 import com.example.core.domain.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import com.example.core.kafka.producer.PaymentRequestProducer;
+import com.example.core.kafka.producer.StockDecreaseProducer;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +25,8 @@ public class OrderService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
     private final OrderRepository orderRepository;
+    private final StockDecreaseProducer stockDecreaseProducer;
+    private final PaymentRequestProducer paymentRequestProducer;
 
     // 주문 생성
     @Transactional
@@ -43,6 +49,38 @@ public class OrderService {
 
         Order saveOrder = orderRepository.save(order);
         return saveOrder.getMerchantUid();
+    }
+
+    @Transactional
+    public void validateMerchantUid(String merchantUId, PaymentValidateRequest request) {
+        Order order = orderRepository.findByMerchantUid(merchantUId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호입니다."));
+        order.updateStatus(OrderStatusEnum.PAYMENT_CONFIRM);
+        orderRepository.save(order);
+
+        paymentRequestProducer.send(order.getItem().getId(), merchantUId, request.getImpUid(),
+            request.getPrice());
+    }
+
+    @Transactional
+    public void updateStatus(String merchantUid, OrderStatusEnum status) {
+        Order order = orderRepository.findByMerchantUid(merchantUid)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호입니다."));
+        order.updateStatus(status);
+
+        orderRepository.save(order);
+    }
+
+    @Transactional
+    public void updateStatus(String merchantUid, String impUid, OrderStatusEnum status) {
+        Order order = orderRepository.findByMerchantUid(merchantUid)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호입니다."));
+
+        order.updateStatus(status);
+        order.setImpUid(impUid);
+
+        stockDecreaseProducer.send(order.getItem().getId(), merchantUid, impUid);
+        orderRepository.save(order);
     }
 
     private void validateStock(Long stock) {
