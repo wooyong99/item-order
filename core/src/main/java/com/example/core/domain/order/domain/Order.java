@@ -36,7 +36,7 @@ public class Order extends BaseEntity {
     Item item;
 
     @Convert(converter = OrderStatusEnumConverter.class)
-    private OrderStatusEnum status = OrderStatusEnum.BEFORE_PAYMENT;
+    private OrderStatusEnum status = OrderStatusEnum.PAYMENT_PENDING;
 
     private Long price;
 
@@ -83,6 +83,10 @@ public class Order extends BaseEntity {
     public void decreaseStatus() {
         Integer decreaseStatusValue = this.status.decreaseStatus();
         this.status = OrderStatusEnum.getByValue(decreaseStatusValue);
+    }
+
+    public void updateStatus(OrderStatusEnum status) {
+        this.status = status;
     }
 
     public void setImpUid(String impUid) {
