@@ -395,4 +395,35 @@ public void paymentRequestConsume(String paymentRequestMessage) throws IOExcepti
 
 <img width="500" src="https://www.notion.so/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2Fb60ba698-3478-44e8-b66b-40ecb9dfa408%2F4326e88b-2acb-4de6-b660-b0624a4cfd8c%2Fperssimistic_perform.png?table=block&id=a3c68198-952c-4647-94c3-b501fdee2722&spaceId=b60ba698-3478-44e8-b66b-40ecb9dfa408&width=1920&userId=47471456-9b72-4efb-98e4-c4997f3e30e8&cache=v2" /><img width="500" src="https://www.notion.so/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2Fb60ba698-3478-44e8-b66b-40ecb9dfa408%2Ff4f744df-9cb1-4eff-baa2-6b2e4d2481f0%2Fdistributed_perform.png?table=block&id=4f7d1e69-22ee-4de8-a62b-29e1540b668e&spaceId=b60ba698-3478-44e8-b66b-40ecb9dfa408&width=1920&userId=47471456-9b72-4efb-98e4-c4997f3e30e8&cache=v2" />
 
+<br>
 
+## 로컬 테스트 방법
+### FE Repository clone 후 서버 실행
+
+```shell
+ git clone https://github.com/wooyong99/item-order-front.git
+```
+
+### Redis 실행
+
+```shell
+ docker run -d --name redis -p 6379:6379 redis
+```
+
+### Kafka 실행
+
+```shell
+ docker-compose up -d
+```
+
+### Order 서비스 실행
+
+```shell
+ ./gradlew :order:bootRun
+```
+
+### Payment 서비스 실행
+
+```shell
+ ./gradlew :payment:bootRun
+```
