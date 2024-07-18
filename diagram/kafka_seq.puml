@@ -1,0 +1,59 @@
+@startuml
+
+participant 클라이언트 as c
+participant 주문모듈 as o
+participant 결제모듈 as p
+
+collections PG사 as pg
+autonumber 1 "(0)"
+c -> o : 주문 생성 및 PENDING 상태
+activate o
+c <-- o
+deactivate o
+
+c -> pg : 결제 요청
+activate pg
+c <-- pg
+deactivate pg
+
+c -> o : 결제 검증 요청
+activate o
+o -> o : merchantID 유효성 검사 및 CONFIRM 상태 변경
+o -> p : 결제 요청 이벤트 발행
+activate p
+p -> pg : 결제 내역 조회
+activate pg
+c <-- o :
+deactivate o
+
+
+
+
+p <-- pg
+deactivate pg
+p -> p : 가격, 이름 유효성 검사
+activate p
+
+
+deactivate p
+
+
+
+
+
+o <- p : 재고 감소 이벤트
+deactivate p
+activate o
+
+
+
+o -> o : 재고 감소
+o -> o : SUCCESS 상태 변경
+activate o
+deactivate o
+deactivate o
+
+c -> o : 결제 완료 요청
+c <-- o : 결제 완료 상태 응답
+
+@enduml
