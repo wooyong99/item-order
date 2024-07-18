@@ -3,10 +3,14 @@
 ## 주요 기능
 - 상품 주문
 
-## 사용 기술
-<img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=OpenJDK&logoColor=white"> <img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white"> <img src="https://img.shields.io/badge/Spring Data JPA-6DB33F?style=for-the-badge&logo=Spring Data JPA&logoColor=white"> 
 <br>
-<img src="https://img.shields.io/badge/MariaDB-003545?style=for-the-badge&logo=MariaDB&logoColor=white"> <img src="https://img.shields.io/badge/Docker compose-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/Apache Kafka-%3333333.svg?style=for-the-badge&logo=Apache Kafka&logoColor=white"> <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=Redis&logoColor=white"> 
+
+## 사용 기술
+<img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=OpenJDK&logoColor=white"> <img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white"> <img src="https://img.shields.io/badge/Spring Data JPA-6DB33F?style=for-the-badge&logo=Spring Data JPA&logoColor=white"> <img src="https://img.shields.io/badge/MariaDB-003545?style=for-the-badge&logo=MariaDB&logoColor=white"> 
+<br>
+<img src="https://img.shields.io/badge/Docker compose-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/Apache Kafka-%3333333.svg?style=for-the-badge&logo=Apache Kafka&logoColor=white"> <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=Redis&logoColor=white"> <img src="https://img.shields.io/badge/apache jmeter-D22128?style=for-the-badge&logo=apache jmeter&logoColor=white"> 
+
+<br>
 
 ## 트러블 슈팅
 <details>
@@ -384,3 +388,11 @@ public void paymentRequestConsume(String paymentRequestMessage) throws IOExcepti
 </p>
 
 </details>
+
+<br>
+
+## 1000건 동시 주문 요청 테스트 ( 약 87.5% 성능 개션)
+
+<img width="500" src="https://www.notion.so/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2Fb60ba698-3478-44e8-b66b-40ecb9dfa408%2F4326e88b-2acb-4de6-b660-b0624a4cfd8c%2Fperssimistic_perform.png?table=block&id=a3c68198-952c-4647-94c3-b501fdee2722&spaceId=b60ba698-3478-44e8-b66b-40ecb9dfa408&width=1920&userId=47471456-9b72-4efb-98e4-c4997f3e30e8&cache=v2" /><img width="500" src="https://www.notion.so/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2Fb60ba698-3478-44e8-b66b-40ecb9dfa408%2Ff4f744df-9cb1-4eff-baa2-6b2e4d2481f0%2Fdistributed_perform.png?table=block&id=4f7d1e69-22ee-4de8-a62b-29e1540b668e&spaceId=b60ba698-3478-44e8-b66b-40ecb9dfa408&width=1920&userId=47471456-9b72-4efb-98e4-c4997f3e30e8&cache=v2" />
+
+
