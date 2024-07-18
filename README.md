@@ -27,7 +27,7 @@ private void getDecreaseStock(Long itemId) {
 }
 ```
 
-<h3>수정 코드</h3>
+<h3>개선 코드</h3>
 
 ```java
 public interface ItemRepository extends JpaRepository<Item, Long>, ItemCustomRepository {
@@ -55,6 +55,80 @@ private void getDecreaseStock(Long itemId) {
 
 <details>
 <summary>2차 Redis의 Pub/Sub 방식의 분산 락 적용</summary>
+
+
+### 문제점
+
+<p align="center">
+  <img src= "https://github.com/user-attachments/assets/74688fe9-db8e-493e-a549-e218eff5c2c4" />
+</p>
+
+- 비관적 락은 **데이터베이스 레벨에서 락을 걸기 때문에, 모든 스레드가 물리 디스크에 직접 접근하여 부하가 커진다**.
+- 분산 DB 환경의 경우 **변경된 데이터를 각 데이터베이스들 간 동기화를 하는데 문제점이 된다**.
+
+### 기존 코드
+
+```java
+public void decreaseStock(Long itemId) {
+    Item item = itemRepository.findByIdWithPessimisticLock(itemId)
+        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이템입니다."));
+    item.decreaseStock();
+    itemRepository.save(item);
+}
+```
+
+### 개선 코드
+
+```java
+@RedissonLock(value = "#itemId")
+public void decreaseStock(Long itemId, String merchantUid) {
+    Item item = itemRepository.findById(itemId)
+        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이템입니다."));
+    item.decreaseStock();
+    itemRepository.save(item);
+}
+```
+
+```java
+@Around("@annotation(com.example.core.aop.RedissonLock)")
+public void redissonLock(ProceedingJoinPoint joinPoint) throws Throwable {
+    MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+    Method method = signature.getMethod();
+
+    RedissonLock annotation = method.getAnnotation(RedissonLock.class);
+    String lockKey =
+        method.getName() + CustomSpringElParser.getDynamicValue(signature.getParameterNames(),
+            joinPoint.getArgs(), annotation.value());
+
+    RLock lock = redissonClient.getLock(lockKey);
+
+    try {
+        boolean lockable = lock.tryLock(annotation.waitTime(), annotation.leaseTime(),
+            TimeUnit.SECONDS);
+        if (!lockable) {
+            log.info("Lock 획득 실패 = {}", lockKey);
+            return;
+        }
+        log.info("로직 수행");
+        joinPoint.proceed();
+    } catch (InterruptedException e) {
+        log.info("에러 발생");
+        throw e;
+    } finally {
+        log.info("락 해제");
+        lock.unlock();
+    }
+}
+```
+### 해결방법
+
+<p align="center">
+  <img src= "https://github.com/user-attachments/assets/d9cd6415-1071-4493-8611-fbfd5ce5cd85" />
+</p>
+
+Lettuce는 락 획득하기 못하는 경우 **Redis에 계속해서 요청을 보내기 때문에** Redis의 부하가 생길 수 있다는 점을 고려하여 **Pub/Sub 방식의 Redisson을 이용하여 분산락**을 구현하였다.<br>
+
+  
 </details>
 
 <details>
