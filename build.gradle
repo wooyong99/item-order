@@ -122,6 +122,14 @@ project(':order') {
     tasks.named('test') {
         useJUnitPlatform()
     }
+
+    // order 서비스를 실행할 bootRun task 정의
+    tasks.register('runOrder', org.springframework.boot.gradle.tasks.run.BootRun) {
+        group = 'application'
+        description = 'Runs the order service'
+
+        mainClassName = 'com.example.api.OrderApplication' // order 서비스의 메인 클래스명을 적절히 변경
+    }
 }
 
 project(':payment') {
@@ -146,29 +154,15 @@ project(':payment') {
     tasks.named('test') {
         useJUnitPlatform()
     }
+    // payment 서비스를 실행할 bootRun task 정의
+    tasks.register('runPayment', org.springframework.boot.gradle.tasks.run.BootRun) {
+        group = 'application'
+        description = 'Runs the payment service'
+
+        mainClassName = 'com.example.payment.PaymentApplication'
+        // payment 서비스의 메인 클래스명을 적절히 변경
+    }
 }
-//
-//project(':api') {
-//    dependencies {
-//        implementation(project(":core"))
-//        implementation(project(":order"))
-//        implementation(project(":payment"))
-//
-//        // Security
-//        implementation 'org.springframework.boot:spring-boot-starter-security'
-//    }
-//    jar {
-//        enabled = false
-//    }
-//
-//    bootJar {
-//        enabled = true
-//    }
-//
-//    tasks.named('test') {
-//        useJUnitPlatform()
-//    }
-//}
 
 
 bootJar.enabled = false
