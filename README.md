@@ -63,17 +63,43 @@ private void getDecreaseStock(Long itemId) {
   <img src= "https://github.com/user-attachments/assets/74688fe9-db8e-493e-a549-e218eff5c2c4" />
 </p>
 
-- 비관적 락은 **데이터베이스 레벨에서 락을 걸기 때문에, 모든 스레드가 물리 디스크에 직접 접근하여 부하가 커진다**.
+- 비관적 락은 **데이터베이스 레벨에서 락을 걸기 때문에, 모든 스레드가 물리 디스크에 직접 접근하여 부하가 커지고**.
 - 분산 DB 환경의 경우 **변경된 데이터를 각 데이터베이스들 간 동기화를 하는데 문제점이 된다**.
 
 ### 기존 코드
 
 ```java
-public void decreaseStock(Long itemId) {
-    Item item = itemRepository.findByIdWithPessimisticLock(itemId)
+@Transactional
+public void validatePayment(Long itemId, String merchantUid, String impUid, Long price) {
+    Order order = orderRepository.findByMerchantUid(merchantUid)
+        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호입니다."));
+    IamportResponse<Payment> paymentIamportResponse = null;
+    try {
+        paymentIamportResponse = iamportClient.paymentByImpUid(
+            impUid);
+
+        if (paymentIamportResponse.getCode() != 0) {
+            throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
+        }
+
+        if (paymentIamportResponse.getResponse().getAmount().longValue() != order.getPrice()) {
+            CancelData data = new CancelData(impUid, true);
+            IamportResponse<Payment> response = iamportClient.cancelPaymentByImpUid(data);
+            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+        }
+    } catch (IamportResponseException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
+    } catch (IOException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
+    }
+    //   비관적 락 실행 코드
+    Item item = itemRepository.findByIdWithPessimisticLock(order.getItem().getId())
         .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이템입니다."));
     item.decreaseStock();
-    itemRepository.save(item);
+    order.updateStatus(OrderStatusEnum.PAYMENT_SUCCESS);
+    orderRepository.save(order);
 }
 ```
 
@@ -90,34 +116,37 @@ public void decreaseStock(Long itemId, String merchantUid) {
 ```
 
 ```java
-@Around("@annotation(com.example.core.aop.RedissonLock)")
-public void redissonLock(ProceedingJoinPoint joinPoint) throws Throwable {
-    MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-    Method method = signature.getMethod();
+@Override
+public void validatePayment(Long itemId, String merchantUid, String impUid, Long price) {
+    Order order = orderRepository.findByMerchantUid(merchantUid)
+        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문 번호입니다."));
 
-    RedissonLock annotation = method.getAnnotation(RedissonLock.class);
-    String lockKey =
-        method.getName() + CustomSpringElParser.getDynamicValue(signature.getParameterNames(),
-            joinPoint.getArgs(), annotation.value());
-
-    RLock lock = redissonClient.getLock(lockKey);
-
+    IamportResponse<Payment> paymentIamportResponse = null;
     try {
-        boolean lockable = lock.tryLock(annotation.waitTime(), annotation.leaseTime(),
-            TimeUnit.SECONDS);
-        if (!lockable) {
-            log.info("Lock 획득 실패 = {}", lockKey);
-            return;
+        paymentIamportResponse = iamportClient.paymentByImpUid(
+            impUid);
+
+        if (paymentIamportResponse.getCode() != 0) {
+            throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
         }
-        log.info("로직 수행");
-        joinPoint.proceed();
-    } catch (InterruptedException e) {
-        log.info("에러 발생");
-        throw e;
-    } finally {
-        log.info("락 해제");
-        lock.unlock();
+
+        if (paymentIamportResponse.getResponse().getAmount().longValue()
+            != price) {
+            CancelData data = new CancelData(impUid, true);
+            IamportResponse<Payment> response = iamportClient.cancelPaymentByImpUid(data);
+            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+        }
+    } catch (IamportResponseException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
+    } catch (IOException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
     }
+    // 분산 락 실행 코드
+    itemService.decreaseStock(itemId);
+    order.updateStatus(OrderStatusEnum.PAYMENT_SUCCESS);
+    orderRepository.save(order);
 }
 ```
 ### 해결방법
@@ -128,11 +157,25 @@ public void redissonLock(ProceedingJoinPoint joinPoint) throws Throwable {
 
 Lettuce는 락 획득하기 못하는 경우 **Redis에 계속해서 요청을 보내기 때문에** Redis의 부하가 생길 수 있다는 점을 고려하여 **Pub/Sub 방식의 Redisson을 이용하여 분산락**을 구현하였다.<br>
 
+또한 Redisson은 Non-Blocking I/O 방식으로 관리하기 때문에 비관적 락보다 성능이 향상되는 것을 확인할 수 있었다.<br>
+-> **평균 응답 시간 68831ms -> 7931ms 단축**
+
+### 1000건 동시 요청 테스트 결과
+
+<p align="center">
+  <img src= "https://www.notion.so/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2Fb60ba698-3478-44e8-b66b-40ecb9dfa408%2Fc5ac3300-5583-4fd2-984b-151a81840a6a%2FUntitled.png?table=block&id=54612c4c-3b2b-45f2-8148-932440aea02a&spaceId=b60ba698-3478-44e8-b66b-40ecb9dfa408&width=1920&userId=47471456-9b72-4efb-98e4-c4997f3e30e8&cache=v2" />
+</p>
+
+<p align="center">
+  <img src= "https://www.notion.so/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2Fb60ba698-3478-44e8-b66b-40ecb9dfa408%2Fe40ae858-12f7-4dd0-81a8-f196ce23da97%2FUntitled.png?table=block&id=faf11d14-f415-4c71-8477-9ec672d26808&spaceId=b60ba698-3478-44e8-b66b-40ecb9dfa408&width=1920&userId=47471456-9b72-4efb-98e4-c4997f3e30e8&cache=v2" />
+</p>
+
   
 </details>
 
 <details>
 <summary>3차 서비스 분리 후 Message Broker를 통해 서버 부하 분산</summary>
+
 </details>
 
 <details>
