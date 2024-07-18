@@ -4,6 +4,7 @@ import com.example.core.kafka.dto.PaymentCancleMessage;
 import com.example.core.kafka.dto.PaymentConfirmMessage;
 import com.example.core.kafka.dto.PaymentRequestMessage;
 import com.example.core.kafka.dto.StatusCancleMessage;
+import com.example.core.kafka.dto.StatusNoPaymentInfoMessage;
 import com.example.core.kafka.dto.StatusSuccessMessage;
 import com.example.core.kafka.dto.StockDecreaseMessage;
 import java.util.HashMap;
@@ -87,6 +88,17 @@ public class KafkaProducerConfig {
     }
 
     @Bean
+    public ProducerFactory<String, StatusNoPaymentInfoMessage> statusNoPaymentInfoProducerProducerFactory() {
+        Map<String, Object> config = new HashMap<>();
+
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+
+        return new DefaultKafkaProducerFactory<>(config);
+    }
+
+    @Bean
     public KafkaTemplate<String, PaymentConfirmMessage> orderMessageKafkaTemplate() {
         return new KafkaTemplate<String, PaymentConfirmMessage>(orderMessageProducerFactory());
     }
@@ -118,5 +130,11 @@ public class KafkaProducerConfig {
     public KafkaTemplate<String, PaymentRequestMessage> paymentRequestMessageKafkaTemplate() {
         return new KafkaTemplate<String, PaymentRequestMessage>(
             paymentRequestMessageProducerFactory());
+    }
+
+    @Bean
+    public KafkaTemplate<String, StatusNoPaymentInfoMessage> statusNoPaymentInfoProducerKafkaTemplate() {
+        return new KafkaTemplate<String, StatusNoPaymentInfoMessage>(
+            statusNoPaymentInfoProducerProducerFactory());
     }
 }

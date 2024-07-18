@@ -20,7 +20,7 @@ public class StatusSuccessConsumer {
 
     @KafkaListener(topics = "ORDER_STATUS_SUCCESS", groupId = "status-success")
     public void orderConsume(String orderMessage) throws IOException {
-        log.info("Order consumer : {}", orderMessage);
+        log.info("StatusSuccess consumer : {}", orderMessage);
 
         ObjectMapper objectMapper = new ObjectMapper();
         PaymentConfirmMessage convertObj = null;

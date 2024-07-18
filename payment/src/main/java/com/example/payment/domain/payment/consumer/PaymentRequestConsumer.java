@@ -1,6 +1,7 @@
 package com.example.payment.domain.payment.consumer;
 
 import com.example.core.kafka.dto.PaymentRequestMessage;
+import com.example.core.kafka.producer.StatusNoPaymentInfoProducer;
 import com.example.payment.domain.payment.service.PaymentService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 public class PaymentRequestConsumer {
 
     private final PaymentService paymentService;
+    private final StatusNoPaymentInfoProducer statusNoPaymentInfoProducer;
 
     @KafkaListener(topics = "PAYMENT_REQUEST", groupId = "payment_request_group")
     public void paymentRequestConsume(String paymentRequestMessage) throws IOException {
@@ -29,8 +31,12 @@ public class PaymentRequestConsumer {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        paymentService.validatePayment(convertObj.getItemId(), convertObj.getMerchantUid(),
-            convertObj.getImpUid(),
-            convertObj.getPrice());
+        try {
+            paymentService.validatePayment(convertObj.getItemId(), convertObj.getMerchantUid(),
+                convertObj.getImpUid(),
+                convertObj.getPrice());
+        } catch (IllegalArgumentException e) {
+            statusNoPaymentInfoProducer.send(convertObj.getMerchantUid());
+        }
     }
 }

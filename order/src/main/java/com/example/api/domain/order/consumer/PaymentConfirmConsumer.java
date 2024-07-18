@@ -23,7 +23,7 @@ public class PaymentConfirmConsumer {
 
     @KafkaListener(topics = "PAYMENT_CONFIRM", groupId = "payment-confirm")
     public void orderConsume(String orderMessage) throws IOException {
-        log.info("Order consumer : {}", orderMessage);
+        log.info("PaymentConfirm consumer : {}", orderMessage);
 
         ObjectMapper objectMapper = new ObjectMapper();
         PaymentConfirmMessage convertObj = null;
