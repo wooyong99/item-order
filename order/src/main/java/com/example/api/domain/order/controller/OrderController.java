@@ -2,6 +2,7 @@ package com.example.api.domain.order.controller;
 
 import com.example.api.domain.order.service.OrderService;
 import com.example.core.domain.order.dto.OrderCreateRequest;
+import com.example.core.domain.order.dto.OrderStatusResponse;
 import com.example.core.domain.payment.dto.PaymentValidateRequest;
 import com.example.core.domain.user.domain.UserRole;
 import com.example.core.security.aop.AuthorizationRequired;
@@ -34,8 +35,8 @@ public class OrderController {
     @AuthorizationRequired({UserRole.GENERAL})
     public ResponseEntity validateMerchantUID(@PathVariable String merchantId,
         @RequestBody PaymentValidateRequest request) {
-        orderService.validateMerchantUid(merchantId, request);
+        OrderStatusResponse status = orderService.validateMerchantUid(merchantId, request);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(status);
     }
 }

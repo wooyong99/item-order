@@ -3,6 +3,7 @@ package com.example.core.kafka.consumer;
 import com.example.core.kafka.dto.PaymentCancleMessage;
 import com.example.core.kafka.dto.PaymentConfirmMessage;
 import com.example.core.kafka.dto.StatusCancleMessage;
+import com.example.core.kafka.dto.StatusNoPaymentInfoMessage;
 import com.example.core.kafka.dto.StatusSuccessMessage;
 import com.example.core.kafka.dto.StockDecreaseMessage;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ public class KafkaConsumerConfig {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "order_group");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "payment-confirm-group");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
@@ -37,7 +38,7 @@ public class KafkaConsumerConfig {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "item_group");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "stock-decrease-group");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
@@ -50,7 +51,7 @@ public class KafkaConsumerConfig {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "payment_cancle_group");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "payment-cancle-group");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
@@ -63,7 +64,7 @@ public class KafkaConsumerConfig {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "payment_cancle_group");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "status-cancle-group");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
@@ -76,12 +77,25 @@ public class KafkaConsumerConfig {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "payment_cancle_group");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "status-success-group");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
         return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(),
             new JsonDeserializer<>(StatusSuccessMessage.class));
+    }
+
+    @Bean
+    public ConsumerFactory<String, StatusNoPaymentInfoMessage> statusNoPaymentInfoMessageConsumerFactory() {
+        Map<String, Object> config = new HashMap<>();
+
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "status-no-payment-group");
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+
+        return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(),
+            new JsonDeserializer<>(StatusNoPaymentInfoMessage.class));
     }
 
 
@@ -121,6 +135,14 @@ public class KafkaConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<String, StatusSuccessMessage> statusSuccessMessageConcurrentKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, StatusSuccessMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(statusSuccessMessageConsumerFactory());
+
+        return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, StatusNoPaymentInfoMessage> statusNoPaymentInfoMessageConcurrentKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, StatusNoPaymentInfoMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(statusNoPaymentInfoMessageConsumerFactory());
 
         return factory;
     }

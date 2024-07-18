@@ -15,7 +15,8 @@ public enum OrderStatusEnum {
     PAYMENT_PENDING(0, ((value) -> value + 1), ((value) -> value - 1)),
     PAYMENT_CONFIRM(1, ((value) -> value + 1), ((value) -> value - 1)),
     PAYMENT_SUCCESS(2, ((value) -> value + 1), ((value) -> value - 1)),
-    PAYMENT_CANCLE(3, ((value) -> value + 1), ((value) -> value - 1));
+    PAYMENT_OUT_OF_STOCK(3, ((value) -> value + 1), ((value) -> value - 1)),
+    PAYMENT_NO_PAYMENT_INFO(4, ((value) -> value + 1), ((value) -> value - 1));
 
     private static final Map<Integer, OrderStatusEnum> valueToName =
         Collections.unmodifiableMap(Stream.of(values())

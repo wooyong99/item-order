@@ -2,7 +2,7 @@ package com.example.api.domain.order.consumer;
 
 import com.example.api.domain.order.service.OrderService;
 import com.example.core.domain.order.domain.OrderStatusEnum;
-import com.example.core.kafka.dto.PaymentConfirmMessage;
+import com.example.core.kafka.dto.StatusNoPaymentInfoMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -14,24 +14,25 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class StatusCancleConsumer {
+public class StatusNoPaymentInfoConsumer {
 
     private final OrderService orderService;
 
-    @KafkaListener(topics = "ORDER_STATUS_CANCLE", groupId = "status-cancle")
-    public void orderConsume(String orderMessage) throws IOException {
-        log.info("StatusCancle consumer : {}", orderMessage);
+    @KafkaListener(topics = "ORDER_STATUS_NO_PAYMENT_INFO", groupId = "status-no-payment-info")
+    public void orderConsume(String msg) throws IOException {
+        log.info("StatusNoPaymentInfo consumer : {}", msg);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        PaymentConfirmMessage convertObj = null;
+        StatusNoPaymentInfoMessage convertObj = null;
         try {
-            convertObj = objectMapper.readValue(orderMessage,
-                PaymentConfirmMessage.class);
+            convertObj = objectMapper.readValue(msg,
+                StatusNoPaymentInfoMessage.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
 
         orderService.updateStatus(convertObj.getMerchantUid(),
-            OrderStatusEnum.PAYMENT_OUT_OF_STOCK);
+            OrderStatusEnum.PAYMENT_NO_PAYMENT_INFO);
     }
+
 }
