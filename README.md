@@ -176,8 +176,211 @@ Lettuce는 락 획득하기 못하는 경우 **Redis에 계속해서 요청을 �
 <details>
 <summary>3차 서비스 분리 후 Message Broker를 통해 서버 부하 분산</summary>
 
+  
+### 한계점
+- 하나의 주문 요청에 대해서 **너무 많은 책임**을 가지고 있어서, 특정 영역에서 발생하는 문제를 해결하기 어렵다.
+  - 예를 들어, 주문 조회, 유효성 검사, 결제 등 작업 중 한 부분에서 오류가 발생하면 전체 프로세스에 영향을 미친다.
+- 하나의 주문 요청에서 다양한 작업이 수행되기 때문에 다양한 에러 상황에 대해서 예외처리를 해주어야하기 때문에 **코드가 복잡해지고 유지보수가 어려워진다**.
+- 하나의 주문 요청에서 다양한 작업이 순차적으로 처리되기 때문에 **응답 시간이 증가**하게 된다.
+
+### 기존 코드
+
+```java
+@Override
+public void validatePayment(Long itemId, String merchantUid, String impUid, Long price) {
+    Order order = orderRepository.findByMerchantUid(merchantUid)
+        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문 번호입니다."));
+
+    IamportResponse<Payment> paymentIamportResponse = null;
+    try {
+        paymentIamportResponse = iamportClient.paymentByImpUid(
+            impUid);
+
+        if (paymentIamportResponse.getCode() != 0) {
+            throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
+        }
+
+        if (paymentIamportResponse.getResponse().getAmount().longValue()
+            != price) {
+            CancelData data = new CancelData(impUid, true);
+            IamportResponse<Payment> response = iamportClient.cancelPaymentByImpUid(data);
+            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+        }
+    } catch (IamportResponseException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
+    } catch (IOException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
+    }
+    // 분산 락 실행 코드
+    itemService.decreaseStock(itemId);
+    order.updateStatus(OrderStatusEnum.PAYMENT_SUCCESS);
+    orderRepository.save(order);
+}
+```
+- 기존 코드의 처리 순서
+  1. 주문 조회 후 유효성 검사
+  2. PG사 결제 검증 후 유효성 검사
+  3. 상품 조회 후 재고 감소
+  4. 주문 상태 변경
+
+- 기존 코드는 4가지의 처리 순서가 한번에 처리되기 코드가 복잡하고 길어질 수 있고, 확장성이 부족하다.
+
+ ### 개선 코드
+#### 1. 주문 조회 후 유효성 검사
+```java
+@Transactional
+public OrderStatusResponse validateMerchantUid(String merchantUId,
+    PaymentValidateRequest request) {
+    Order order = null;
+    try {
+        order = orderRepository.findByMerchantUid(merchantUId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호입니다."));
+    } catch (IllegalArgumentException e) {
+        paymentCancleProducer.send(request.getImpUid());
+        return convertOrderStatusResponse(OrderStatusEnum.PAYMENT_NO_PAYMENT_INFO);
+    }
+    if (order.getStatus() == OrderStatusEnum.PAYMENT_PENDING) {
+        order.updateStatus(OrderStatusEnum.PAYMENT_CONFIRM);
+        orderRepository.save(order);
+
+        paymentRequestProducer.send(order.getItem().getId(), merchantUId, request.getImpUid(),
+            request.getPrice());          // 결제 요청 이벤트 발행
+    }
+    return convertOrderStatusResponse(order.getStatus());
+}
+```
+
+#### 2. 결제 검증
+ ```java
+@Override
+public void validatePayment(Long itemId, String merchantUid, String impUid, Long price) {
+    IamportResponse<Payment> paymentIamportResponse = null;
+    try {
+        paymentIamportResponse = iamportClient.paymentByImpUid(
+            impUid);
+
+        if (paymentIamportResponse.getCode() != 0) {
+            throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
+        }
+
+        if (paymentIamportResponse.getResponse().getAmount().longValue()
+            != price) {
+            CancelData data = new CancelData(impUid, true);
+            IamportResponse<Payment> response = iamportClient.cancelPaymentByImpUid(data);
+            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+        }
+    } catch (IamportResponseException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
+    } catch (IOException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException("결제 내역이 존재하지 않습니다.");
+    }
+
+    stockDecreaseProducer.send(itemId, merchantUid, impUid);      // 재고 감소 이벤트 발행
+}
+```
+
+#### 3. 재고 감소
+
+```java
+@RedissonLock(value = "#itemId")
+public void decreaseStock(Long itemId, String merchantUid) {
+    Item item = itemRepository.findById(itemId)
+        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이템입니다."));
+    item.decreaseStock();
+    itemRepository.save(item);
+    statusSuccessProducer.send(merchantUid);        // 주문 상태 성공 이벤트 발행
+}
+```
+
+#### 4. 주문 상태 변경
+
+```java
+@Transactional
+public void updateStatus(String merchantUid, OrderStatusEnum status) {
+    Order order = orderRepository.findByMerchantUid(merchantUid)
+        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문번호입니다."));
+    order.updateStatus(status);
+
+    orderRepository.save(order);
+}
+```
+
+### 해결방법
+- 주문과 결제 서비스를 각각 분리한 후, Message Broker를 이용하여 비동기 처리를 통해 **유연한 확장 가능한 설계**와 애플리케이션 **서버의 부하를 분산**하였다.
+
 </details>
 
 <details>
 <summary>4차 분산 트랜잭션을 위하여 Saga Pattern 구현 (Choreography 방식)</summary>
+
+### 문제점
+
+- 주문과 결제 서비스 간 비동기 통신에 있어서 서비스 장애(재고 부족, 주문 유효성 검사 실패 등), 네트워크 지연 등으로 **로컬 트랜잭션 실패 시, 데이터의 일관성이 깨지게 된다.**
+  
+### 추가된 코드
+
+#### 재고 부족 롤백 트랜잭션 코드
+
+```java
+@KafkaListener(topics = "STOCK_DECREASE", groupId = "stock-decrease")
+public void stockDecreaseConsume(String itemMessage) throws IOException {
+    log.info("StockDecrease consumer : {}", itemMessage);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    StockDecreaseMessage convertObj = null;
+    try {
+        convertObj = objectMapper.readValue(itemMessage,
+            StockDecreaseMessage.class);
+    } catch (JsonProcessingException e) {
+        e.printStackTrace();
+    }
+
+    try {
+        itemService.decreaseStock(convertObj.getItemId(), convertObj.getMerchantUid());
+    } catch (StockNegativeException e) {                            // 재고 부족 예외 발생
+        log.warn("상품의 재고가 부족합니다.");
+        statusCancleProducer.send(
+            convertObj.getMerchantUid());          // 주문 상태 변경 이벤트 (PAYMENT_OUT_OF_STOCK)
+        paymentCancleProducer.send(convertObj.getImpUid());    // 결제 취소 이벤트 발행
+    }
+}
+```
+
+#### 주문 내역이 없는 경우 결제 취소 이벤트 발행
+
+```java
+@KafkaListener(topics = "PAYMENT_REQUEST", groupId = "payment_request_group")
+public void paymentRequestConsume(String paymentRequestMessage) throws IOException {
+    log.info("PaymentRequest consumer : {}", paymentRequestMessage);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    PaymentRequestMessage convertObj = null;
+    try {
+        convertObj = objectMapper.readValue(paymentRequestMessage,
+            PaymentRequestMessage.class);
+    } catch (JsonProcessingException e) {
+        e.printStackTrace();
+    }
+    try {
+        paymentService.validatePayment(convertObj.getItemId(), convertObj.getMerchantUid(),
+            convertObj.getImpUid(),
+            convertObj.getPrice());
+    } catch (IllegalArgumentException e) {
+        statusNoPaymentInfoProducer.send(convertObj.getMerchantUid());      // 주문 상태 변경 이벤트 (PAYMENT_NO_PAYMENT_INO)
+    }
+}
+```
+
+### 해결방법
+- MessageBroker를 통해 새로운 Topic, Consumer, Producer를 생성하여 보상 트랜잭션을 통해 분산 트랜잭션을 보장하였다.
+- 해당 프로젝트에서는 참여자가 적고 비즈니스 로직이 단순하는 점과 Orchestration 방식을 구현하기 위해서 추가 인스턴스를 생성해야한다는 점을 고려하여 Choreography 방식으로 구현하였다.
+
+<p align="center">
+  <img src= "https://github.com/user-attachments/assets/d90d615f-efb0-410e-807e-2e839a4c8605" />
+</p>
+
 </details>
