@@ -3,6 +3,10 @@
 ## 주요 기능
 - 상품 주문
 
+## 시연 영상
+
+https://github.com/user-attachments/assets/a229f054-c5ea-4653-ab6d-2db8b6e3cf27
+
 <br>
 
 ## 사용 기술
