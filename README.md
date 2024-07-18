@@ -401,6 +401,25 @@ public void paymentRequestConsume(String paymentRequestMessage) throws IOExcepti
 
 <br>
 
+## 주문 결제 기능 시퀀스 다이어그램
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/697eab80-07dd-434c-874b-a8437da3af16" />
+</p>
+
+## 주문 번호 유효성 검사 실패 보상 트랜잭션
+
+<p align="center">
+<img src="https://github.com/user-attachments/assets/d4df82db-df11-4510-9553-39f719766674" />
+</p>
+
+## 재고 감소 보상 트랜잭션
+
+<p align="center">
+<img src="https://github.com/user-attachments/assets/3017ddd3-3c0f-4411-85b6-1e3d38f49f6e" />
+</p>
+
+<br>
+
 ## 로컬 테스트 방법
 ### FE Repository clone 후 서버 실행
 
